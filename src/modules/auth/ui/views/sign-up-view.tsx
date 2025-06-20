@@ -201,7 +201,7 @@ export const SignUpView = () => {
                         <Button
                             disabled = {pending}
                             type="submit"
-                            className="w-full"
+                            className="w-full bg-blue-700"
                         >
                             Sign in 
                         </Button>
