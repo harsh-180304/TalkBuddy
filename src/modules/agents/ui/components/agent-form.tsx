@@ -56,6 +56,24 @@ export const AgentForm = ({
             }
         })
     );
+
+    const UpdateAgent = useMutation(
+        trpc.agents.update.mutationOptions({
+            onSuccess:async ()=>{
+                await queryClient.invalidateQueries(
+                    trpc.agents.getMany.queryOptions({}),
+                );
+                
+                //todo invalidate free tier usage
+                onSuccess?.();
+            },
+            onError: (error) => {
+                toast.error(error.message)
+                //todo check if error code is forebidden redired to upgrade .
+            }
+        })
+    );
+
     const form = useForm<z.infer<typeof agentsInsertSchema>>({
         resolver : zodResolver(agentsInsertSchema),
         defaultValues:{
@@ -64,11 +82,11 @@ export const AgentForm = ({
         }
     })
     const isEdit = !!initialValues?.id;
-    const isPending = createAgent.isPending;
+    const isPending = createAgent.isPending || UpdateAgent.isPending;
 
     const onSubmit = (values : z.infer<typeof agentsInsertSchema>) => {
         if(isEdit){
-            console.log("1000 : updateAgent")
+            UpdateAgent.mutate({...values , id:initialValues.id}); 
         }else {
             createAgent.mutate(values);
         }
@@ -123,7 +141,7 @@ export const AgentForm = ({
                         disabled = {isPending}
                         type = "submit"
                     >
-                        {isEdit ? "update" : "Create"}
+                        {isEdit ? "Update" : "Create"}
 
                     </Button>
                 </div>
